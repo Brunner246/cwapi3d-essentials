@@ -65,6 +65,126 @@ sequenceDiagram
     Slot ->> Slot: Slot-Funktion wird ausgeführt
 ```
 
+Der Signal-Slot-Mechanismus ist das Herzstück der ereignisgesteuerten Programmierung in Qt. Es ermöglicht eine lose
+Kopplung von Objekten, sodass diese miteinander kommunizieren können, ohne voneinander abhängig zu sein.
+
+#### Grundprinzipien
+
+1. **Signale**: Werden von Objekten emittiert, wenn ein bestimmtes Ereignis eintritt
+2. **Slots**: Funktionen, die aufgerufen werden, wenn ein verbundenes Signal ausgelöst wird
+3. **Verbindungen**: Verknüpfen ein Signal mit einem oder mehreren Slots
+
+#### Signale definieren
+
+In PyQt5 werden Signale mit der `pyqtSignal`-Klasse definiert:
+
+```python
+from PyQt5.QtCore import QObject, pyqtSignal
+
+
+class Counter(QObject):
+    # Signal ohne Parameter
+    countChanged = pyqtSignal()
+
+    # Signal mit einem int-Parameter
+    valueChanged = pyqtSignal(int)
+
+    # Signal mit mehreren Parametern
+    rangeChanged = pyqtSignal(int, int)
+
+    # Signal mit unterschiedlichen Signaturvarianten
+    statusChanged = pyqtSignal([int], [str])
+```
+
+#### Slots definieren
+
+Slots sind einfach Python-Methoden. Mit dem `@pyqtSlot`-Dekorator können Sie die Signatur explizit angeben:
+
+```python
+from PyQt5.QtCore import pyqtSlot
+
+
+class Display(QObject):
+    @pyqtSlot()  # Slot ohne Parameter
+    def refresh(self):
+        print("Display wird aktualisiert")
+
+    @pyqtSlot(int)  # Slot mit einem int-Parameter
+    def showValue(self, value):
+        print(f"Neuer Wert: {value}")
+
+    @pyqtSlot(int, int)  # Slot mit zwei int-Parametern
+    def setRange(self, min_value, max_value):
+        print(f"Neuer Bereich: {min_value} bis {max_value}")
+```
+
+#### Signale und Slots verbinden
+
+Um ein Signal mit einem Slot zu verbinden, verwenden Sie die `connect`-Methode:
+
+```python
+# Objekte erstellen
+counter = Counter()
+display = Display()
+
+# Signale mit Slots verbinden
+counter.countChanged.connect(display.refresh)
+counter.valueChanged.connect(display.showValue)
+counter.rangeChanged.connect(display.setRange)
+```
+
+#### Signale emittieren
+
+Um ein Signal auszulösen, rufen Sie die `emit`-Methode auf:
+
+```python
+class Counter(QObject):
+    # ... (Signale wie oben definiert)
+
+    def increment(self):
+        self._value += 1
+        # Signal ohne Parameter emittieren
+        self.countChanged.emit()
+        # Signal mit Parameter emittieren
+        self.valueChanged.emit(self._value)
+
+    def setRange(self, min_value, max_value):
+        # Signal mit mehreren Parametern emittieren
+        self.rangeChanged.emit(min_value, max_value)
+```
+
+#### Fortgeschrittene Techniken
+
+1. **Verbindungstypen**: Qt bietet verschiedene Arten der Verbindung:
+   ```python
+   # Standardverbindung (Auto-Connection)
+   button.clicked.connect(self.handle_click)
+
+   # Direkte Verbindung (synchron)
+   button.clicked.connect(self.handle_click, Qt.DirectConnection)
+
+   # Warteschlangen-Verbindung (asynchron)
+   button.clicked.connect(self.handle_click, Qt.QueuedConnection)
+   ```
+
+2. **Lambda-Funktionen**: Für einfache Anpassungen können Lambda-Funktionen verwenden:
+   ```python
+   # Slot mit angepasstem Parameter aufrufen
+   slider.valueChanged.connect(lambda value: label.setText(f"Wert: {value}%"))
+   ```
+
+3. **Signalverbindungen trennen**:
+   ```python
+   # Einzelne Verbindung trennen
+   button.clicked.disconnect(self.handle_click)
+
+   # Alle Verbindungen trennen
+   button.clicked.disconnect()
+   ```
+
+4. **Signale zwischen Threads**: Bei der Verwendung mehrerer Threads ist `Qt.QueuedConnection` wichtig, um
+   Thread-Sicherheit zu gewährleisten.
+
 ## Effiziente PyQt5-Entwicklung
 
 Für eine effiziente Entwicklung mit PyQt5 empfehlen sich folgende Praktiken:
@@ -136,11 +256,13 @@ Folgend ein Beispiel einer MVVM-Implementierung zur Verwaltung von CAD-Elementen
 from dataclasses import dataclass
 from typing import List
 
+
 @dataclass(frozen=True)
 class ElementGroup:
     name: str
     count: int
     elements: List
+
 
 class CadElement:
     def __init__(self, element_id, name, element_type):
@@ -167,86 +289,90 @@ import element_controller as ec
 
 
 class CadElementViewModel(QObject):
-   elementsChanged = pyqtSignal()
+    elementsChanged = pyqtSignal()
 
-   def __init__(self):
-      super().__init__()
-      self._elements = []
-      self._load_elements()
+    def __init__(self):
+        super().__init__()
+        self._elements = []
+        self._load_elements()
 
-   def _load_elements(self):
+    def _load_elements(self):
 
-      element_ids = element_controller.get_active_identifiable_element_ids()
-      self._elements = []
-    
-      for element_id in element_ids:
-         name = attribute_controller.get_name(element_id)
-         element_type: ElementType = attribute_controller.get_element_type(element_id) # .is_panel() etc. eigene Logik implementieren
-         self._elements.append(CadElement(element_id, name, element_type))
+        element_ids = element_controller.get_active_identifiable_element_ids()
+        self._elements = []
 
-      self.elementsChanged.emit() # Signal auslösen, um die Ansicht zu aktualisieren
+        for element_id in element_ids:
+            name = attribute_controller.get_name(element_id)
+            element_type: ElementType = attribute_controller.get_element_type(
+                element_id)  # .is_panel() etc. eigene Logik implementieren
+            self._elements.append(CadElement(element_id, name, element_type))
 
-   def get_elements_by_name(self):
-      # Gruppieren der Elemente nach Namen
-      grouped: Dict[str, int] = {}
-      for element in self._elements:
-         if element.name not in grouped:
-            grouped[element.name] = []
-         grouped[element.name].append(element)
+        self.elementsChanged.emit()  # Signal auslösen, um die Ansicht zu aktualisieren
 
-      # Erzeugen einer Liste von ElementGroup Objekten
-      result = []
-      for name, elements in grouped.items():
-         result.append(ElementGroup(name=name, count=len(elements), elements=elements))
+    def get_elements_by_name(self):
+        # Gruppieren der Elemente nach Namen
+        grouped: Dict[str, int] = {}
+        for element in self._elements:
+            if element.name not in grouped:
+                grouped[element.name] = []
+            grouped[element.name].append(element)
 
-      # Sortieren nach Namen
-      return sorted(result, key=lambda x: x.name)
+        # Erzeugen einer Liste von ElementGroup Objekten
+        result = []
+        for name, elements in grouped.items():
+            result.append(ElementGroup(name=name, count=len(elements), elements=elements))
 
-   @pyqtSlot(str)
-   def activate_elements_by_name(self, name):
-      for element in self._elements:
-         if element.name == name:
-            element.activate()
-      self.elementsChanged.emit() # Signal auslösen, um die Ansicht zu aktualisieren
+        # Sortieren nach Namen
+        return sorted(result, key=lambda x: x.name)
+
+    @pyqtSlot(str)
+    def activate_elements_by_name(self, name):
+        for element in self._elements:
+            if element.name == name:
+                element.activate()
+        self.elementsChanged.emit()  # Signal auslösen, um die Ansicht zu aktualisieren
 
 
 # TableModel für die Anzeige in einer QTableView
-class CadElementTableModel(QAbstractTableModel): # Verwendung des Model/View-Ansatzes
-   def __init__(self, view_model):
-      super().__init__()
-      self._view_model = view_model
-      self._view_model.elementsChanged.connect(self.modelReset.emit)
-      self._data = self._view_model.get_elements_by_name()
+class CadElementTableModel(QAbstractTableModel):  # Verwendung des Model/View-Ansatzes
+    def __init__(self, view_model):
+        super().__init__()
+        self._view_model = view_model
+        self._view_model.elementsChanged.connect(self.modelReset.emit)
+        self._data = self._view_model.get_elements_by_name()
 
-   # override
-   def rowCount(self, parent=QModelIndex()):
-      return len(self._data)
     # override
-   def columnCount(self, parent=QModelIndex()):
-      return 2  # Name und Anzahl
+    def rowCount(self, parent=QModelIndex()):
+        return len(self._data)
+
     # override
-   def data(self, index, role=Qt.DisplayRole):
-      if not index.isValid():
-         return None
+    def columnCount(self, parent=QModelIndex()):
+        return 2  # Name und Anzahl
 
-      if role == Qt.DisplayRole:
-         row = index.row()
-         col = index.column()
-
-         if col == 0:  # Name
-            return self._data[row].name
-         elif col == 1:  # Anzahl
-            return self._data[row].count
-
-      return None
     # override
-   def headerData(self, section, orientation, role=Qt.DisplayRole):
-      if role == Qt.DisplayRole and orientation == Qt.Horizontal:
-         if section == 0:
-            return "Elementname"
-         elif section == 1:
-            return "Anzahl"
-      return None
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid():
+            return None
+
+        if role == Qt.DisplayRole:
+            row = index.row()
+            col = index.column()
+
+            if col == 0:  # Name
+                return self._data[row].name
+            elif col == 1:  # Anzahl
+                return self._data[row].count
+
+        return None
+
+    # override
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            if section == 0:
+                return "Elementname"
+            elif section == 1:
+                return "Anzahl"
+        return None
 ```
 
 ### View: UI-Komponente
