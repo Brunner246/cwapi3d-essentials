@@ -10,6 +10,7 @@ Arbeit mit CAD-Elementen unter Verwendung der cwapi3d.
 - [Effiziente PyQt5-Entwicklung](#effiziente-pyqt5-entwicklung)
 - [Qt Designer für UI-Entwicklung](#qt-designer-für-ui-entwicklung)
 - [Ressourcenverwaltung mit QRC](#ressourcenverwaltung-mit-qrc)
+- [Qt Stylesheets](#qt-stylesheets)
 - [Das MVVM-Muster](#das-mvvm-muster)
 - [Praktisches Beispiel: CAD-Elementeverwaltung](#praktisches-beispiel-cad-elementeverwaltung)
 - [Integration mit cwapi3d](#integration-mit-cwapi3d)
@@ -441,6 +442,150 @@ if __name__ == "__main__":
     window.show()
     app.exec_()
 ```
+
+## Qt Stylesheets
+
+[stylesheet-examples](https://doc.qt.io/qt-6/stylesheet-examples.html)
+
+Qt unterstützt Stylesheets, die auf CSS basieren und eine leistungsstarke Möglichkeit bieten, das Erscheinungsbild von
+Qt-Anwendungen anzupassen. Mit Stylesheets können Sie Farben, Schriften, Rahmen und viele andere visuelle Eigenschaften
+von Widgets definieren, ohne den Programmcode zu ändern.
+
+### Grundlegende Syntax
+
+Die Syntax von Qt Stylesheets ähnelt CSS, mit Selektoren und Eigenschaftsdeklarationen:
+
+```css
+/* Widget-Typ Selektor */
+QPushButton {
+    background-color: #4CAF50;
+    color: white;
+    border: 2px solid #2E7D32;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-weight: bold;
+}
+
+/* Zustandsbasierter Selektor */
+QPushButton:hover {
+    background-color: #66BB6A;
+}
+
+QPushButton:pressed {
+    background-color: #2E7D32;
+}
+```
+
+### Selektoren
+
+Qt Stylesheets unterstützen verschiedene Arten von Selektoren:
+
+1. **Universeller Selektor**: Gilt für alle Widgets
+   ```css
+   * { color: black; }
+   ```
+
+2. **Typ-Selektor**: Gilt für alle Widgets eines bestimmten Typs
+   ```css
+   QPushButton { background-color: blue; }
+   ```
+
+3. **Eigenschafts-Selektor**: Gilt für Widgets mit bestimmten Eigenschaften
+   ```css
+   QPushButton[flat="true"] { border: none; }
+   ```
+
+4. **ID-Selektor**: Gilt für ein Widget mit einem bestimmten `objectName`
+   ```css
+   QPushButton#submitButton { background-color: green; }
+   ```
+
+5. **Klassen-Selektor**: Gilt für Widgets einer bestimmten Klasse
+   ```css
+   .QPushButton { font-weight: bold; }
+   ```
+
+6. **Pseudozustands-Selektor**: Gilt für Widgets in einem bestimmten Zustand
+   ```css
+   QPushButton:hover { color: red; }
+   QPushButton:disabled { color: gray; }
+   ```
+
+7. **Subkontroll-Selektor**: Gilt für bestimmte Teile komplexer Widgets
+   ```css
+   QComboBox::drop-down { border-left: 1px solid gray; }
+   ```
+
+### Häufig verwendete Eigenschaften
+
+- **Schrift**: `font-family`, `font-size`, `font-weight`
+- **Farben**: `color` (Textfarbe), `background-color`
+- **Rahmen**: `border`, `border-radius`, `border-color`
+- **Abstände**: `padding`, `margin`
+- **Größe**: `min-height`, `max-width`
+- **Hintergrund**: `background-image`, `background-position`
+
+### Anwendung von Stylesheets
+
+Stylesheets können auf verschiedene Weisen angewendet werden:
+
+1. **Auf einzelne Widgets**:
+   ```python
+   button.setStyleSheet("background-color: blue; color: white;")
+   ```
+
+2. **Auf Container-Widgets** (wird an Kinder vererbt):
+   ```python
+   mainWindow.setStyleSheet("""
+   QPushButton { background-color: blue; }
+   QLabel { color: red; }
+   """)
+   ```
+
+3. **Auf die gesamte Anwendung**:
+   ```python
+   app = QApplication(sys.argv)
+   app.setStyleSheet("""...""") 
+   ```
+
+4. **Aus einer Datei laden**:
+   ```python
+   with open("style.qss", "r") as f:
+       app.setStyleSheet(f.read())
+   ```
+
+### Integration mit QRC-Ressourcen
+
+Stylesheets können in QRC-Dateien eingebettet und aus diesen Ressourcen geladen werden:
+
+```python
+import resources_rc
+
+# Stylesheet aus Ressource laden
+with open(":/styles/dark.qss", "r") as f:
+    style = f.read()
+    app.setStyleSheet(style)
+```
+
+### Themenunterstützung implementieren
+
+```python
+class ThemeManager:
+    @staticmethod
+    def apply_theme(app, theme_name):
+        if theme_name == "dark": # kann via cwapi3d abgerufen werden
+            with open(":/styles/dark.qss", "r") as f:
+                app.setStyleSheet(f.read())
+        elif theme_name == "light": # kann via cwapi3d abgerufen werden
+            with open(":/styles/light.qss", "r") as f:
+                app.setStyleSheet(f.read())
+        else:
+            app.setStyleSheet("")  # Standard-Stil
+```
+
+Stylesheets sind ein mächtiges Werkzeug, um Qt-Anwendungen ein professionelles und einheitliches Erscheinungsbild zu
+geben. Durch die Trennung von Styling und Code wird die Anwendung wartbarer und flexibler für zukünftige
+Designänderungen.
 
 ## Das MVVM-Muster
 
