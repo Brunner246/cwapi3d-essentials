@@ -8,6 +8,8 @@ Arbeit mit CAD-Elementen unter Verwendung der cwapi3d.
 - [Was ist PyQt5?](#was-ist-pyqt5)
 - [Qt-Architektur und Funktionsweise](#qt-architektur-und-funktionsweise)
 - [Effiziente PyQt5-Entwicklung](#effiziente-pyqt5-entwicklung)
+- [Qt Designer für UI-Entwicklung](#qt-designer-für-ui-entwicklung)
+- [Ressourcenverwaltung mit QRC](#ressourcenverwaltung-mit-qrc)
 - [Das MVVM-Muster](#das-mvvm-muster)
 - [Praktisches Beispiel: CAD-Elementeverwaltung](#praktisches-beispiel-cad-elementeverwaltung)
 - [Integration mit cwapi3d](#integration-mit-cwapi3d)
@@ -221,6 +223,223 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
+```
+
+## Qt Designer für UI-Entwicklung
+
+Der Qt Designer ist ein leistungsstarkes visuelles Tool zur Gestaltung von Benutzeroberflächen für Qt-Anwendungen.
+Anstatt UIs manuell zu programmieren, können Sie Widgets per Drag-and-Drop platzieren, Eigenschaften konfigurieren und
+Layouts visuell gestalten.
+
+### Grundlegende Verwendung des Qt Designers
+
+1. **Installation**: Der Qt Designer ist Teil von Qt und kann als eigenständige Anwendung oder als Teil von QtCreator
+   installiert werden.
+
+2. **UI-Datei erstellen**: Im Designer erstellte Layouts werden als `.ui`-Dateien gespeichert (XML-Format).
+
+3. **Widgets und Layouts**: Per Drag-and-Drop können Widgets platziert und mit Layouts (Grid, VBox, HBox, Form)
+   organisiert werden.
+
+4. **Eigenschaften einstellen**: Jedes Widget hat konfigurierbare Eigenschaften wie Name, Größe, Stil, Text usw.
+
+5. **Signale und Slots verbinden**: Über den Signal/Slot-Editor können Verbindungen zwischen Widgets definiert werden.
+
+### Integration in Python-Code
+
+Es gibt zwei Hauptmethoden, um UI-Dateien in PyQt5-Code zu integrieren:
+
+#### 1. Direkte Verwendung über `uic.loadUi()`
+
+```python
+import sys
+from PyQt5 import QtWidgets, uic
+
+
+class MainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        # UI-Datei direkt laden
+        uic.loadUi('mainwindow.ui', self)
+
+        # Auf Widgets zugreifen (durch ihre objectName-Eigenschaft)
+        self.pushButton = self.findChild(QtWidgets.QPushButton, 'pushButton')
+        self.pushButton.clicked.connect(self.button_clicked)
+
+    def button_clicked(self):
+        print("Button wurde geklickt!")
+
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())
+```
+
+#### 2. Konvertierung in Python-Code mit `pyuic5`
+
+Die `.ui`-Datei kann mit dem Tool `pyuic5` in Python-Code umgewandelt werden:
+
+```bash
+pyuic5 mainwindow.ui -o ui_mainwindow.py
+```
+
+Dieser generierte Code kann dann importiert und verwendet werden:
+
+```python
+import sys
+from PyQt5 import QtWidgets
+from ui_mainwindow import Ui_MainWindow
+
+
+class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+    def __init__(self):
+        super().__init__()
+
+        # UI-Klasse initialisieren
+        self.setupUi(self)
+
+        # Signale verbinden
+        self.pushButton.clicked.connect(self.button_clicked)
+
+    def button_clicked(self):
+        print("Button wurde geklickt!")
+
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())
+```
+
+### Vorteile und Best Practices
+
+- **Trennung von UI und Logik**: UI-Design und Code-Logik werden getrennt, was die Wartung erleichtert
+- **Schnellere Entwicklung**: Visuelles Design ist oft schneller als manuelles Programmieren
+- **Konsistentes Layout**: Layouts passen sich automatisch an Größenänderungen an
+- **Generierter Code aktualisieren**: Bei UI-Änderungen die Python-Datei neu generieren, ohne manuelle Änderungen zu
+  verlieren
+
+## Ressourcenverwaltung mit QRC
+
+Qt Resource-Dateien (QRC) bieten eine Möglichkeit, Ressourcen wie Bilder, Icons, Übersetzungen und andere Dateien direkt
+in die Anwendung einzubetten. Dies erleichtert die Verteilung der Anwendung und ermöglicht einen effizienten Zugriff auf
+Ressourcen zur Laufzeit.
+
+### Grundlagen von QRC-Dateien
+
+QRC-Dateien sind XML-Dokumente, die die einzubettenden Ressourcen definieren. Sie werden in C++-Code kompiliert oder für
+Python in Python-Code umgewandelt.
+
+#### Beispiel einer QRC-Datei (resources.qrc):
+
+```xml
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource>
+        <file>images/logo.png</file>
+        <file>images/icon.ico</file>
+        <file>styles/main.css</file>
+        <file>data/config.json</file>
+    </qresource>
+</RCC>
+```
+
+### Kompilierung und Verwendung in Python
+
+#### 1. Kompilieren der QRC-Datei
+
+Verwenden Sie das `pyrcc5`-Tool, um die QRC-Datei in Python-Code umzuwandeln:
+
+```bash
+pyrcc5 resources.qrc -o resources_rc.py
+```
+
+#### 2. Importieren und Verwenden der Ressourcen
+
+```python
+import resources_rc  # Wichtig: Immer importieren, auch wenn scheinbar ungenutzt
+from PyQt5.QtWidgets import QMainWindow, QLabel
+from PyQt5.QtGui import QPixmap
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("QRC-Beispiel")
+
+        # Bild aus eingebetteten Ressourcen laden
+        label = QLabel(self)
+        pixmap = QPixmap(":/images/logo.png")  # Beachten Sie den Präfix ":/"
+        label.setPixmap(pixmap)
+        self.setCentralWidget(label)
+```
+
+### Ressourcen in Designer-UI-Dateien verwenden
+
+Ressourcen können auch direkt im Qt Designer verwendet werden:
+
+1. Im Designer unter **Form → View Resources** die QRC-Datei laden
+2. Die Ressourcen sind nun im Designer verfügbar (z.B. für Icons, Hintergrundbilder)
+3. Nach der Generierung der UI-Datei muss die entsprechende Resource-Datei (resources_rc.py) importiert werden
+
+### Vorteile der QRC-Ressourcenverwaltung
+
+1. **Portabilität**: Alle Ressourcen sind in die Anwendung eingebettet
+2. **Effizienz**: Schnellerer Zugriff als von der Festplatte
+3. **Sicherheit**: Ressourcen können nicht versehentlich gelöscht oder verändert werden
+4. **Einfache Verteilung**: Kein separates Verpacken von Ressourcendateien nötig
+
+### Namensräume in QRC-Dateien
+
+Ressourcen können in verschiedene Namensräume organisiert werden:
+
+```xml
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/icons">
+        <file>icons/save.png</file>
+        <file>icons/open.png</file>
+    </qresource>
+    <qresource prefix="/styles">
+        <file>styles/dark.css</file>
+        <file>styles/light.css</file>
+    </qresource>
+</RCC>
+```
+
+Zugriff erfolgt dann über den entsprechenden Präfix:
+
+```python
+icon = QIcon(":/icons/save.png")
+```
+
+### Beispiel: Stylesheets aus Ressourcen laden
+
+```python
+import resources_rc
+from PyQt5.QtWidgets import QApplication, QMainWindow
+
+
+class StyledWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Styled Application")
+
+        # Stylesheet aus Ressource laden
+        with open(":/styles/main.css", "r") as f:
+            style = f.read()
+            self.setStyleSheet(style)
+
+
+if __name__ == "__main__":
+    app = QApplication([])
+    window = StyledWindow()
+    window.show()
+    app.exec_()
 ```
 
 ## Das MVVM-Muster
