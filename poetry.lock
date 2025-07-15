@@ -13,13 +13,13 @@ files = [
 
 [[package]]
 name = "cwapi3d"
-version = "32.274.0"
+version = "32.296.0"
 description = "Python bindings for CwAPI3D"
 optional = false
 python-versions = ">=3.12"
 files = [
-    {file = "cwapi3d-32.274.0-py3-none-any.whl", hash = "sha256:367aa6dd04beb880975210a00ca69e395929e7c0accab9a7e74a3cbacceba134"},
-    {file = "cwapi3d-32.274.0.tar.gz", hash = "sha256:eb86ea5fdc126d6035ecaad9826cfbe7d0271f63189baf12624f8c293689f8b2"},
+    {file = "cwapi3d-32.296.0-py3-none-any.whl", hash = "sha256:d0f8ea83d534b085aa237fd77b1ee25eef18cb6b2313f8e1476ad2706206038c"},
+    {file = "cwapi3d-32.296.0.tar.gz", hash = "sha256:7dd70b9fbb099196c51203bed9b82cf52289ea1b60abe095526388eca196c399"},
 ]
 
 [[package]]

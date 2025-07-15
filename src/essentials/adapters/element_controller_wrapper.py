@@ -1,3 +1,5 @@
+from typing import List
+
 import element_controller
 import machine_controller
 from cwmath.cwvector3d import CwVector3d
@@ -5,6 +7,9 @@ from cwmath.cwvector3d import CwVector3d
 from essentials.adapters._utils import to_cadwork_vector
 from essentials.models import ElementId
 
+
+def get_active_elements() -> List[ElementId]:
+    return element_controller.get_active_identifiable_element_ids()
 
 class ElementControllerWrapper:
 
