@@ -133,6 +133,15 @@ Folgend ein Beispiel einer MVVM-Implementierung zur Verwaltung von CAD-Elementen
 ### Model: CAD-Elemente
 
 ```python
+from dataclasses import dataclass
+from typing import List
+
+@dataclass(frozen=True)
+class ElementGroup:
+    name: str
+    count: int
+    elements: List
+
 class CadElement:
     def __init__(self, element_id, name, element_type):
         self.element_id = element_id
@@ -185,13 +194,13 @@ class CadElementViewModel(QObject):
             grouped[element.name] = []
          grouped[element.name].append(element)
 
-      # Erzeugen einer Liste von Tupeln (Name, Anzahl, Elemente)
+      # Erzeugen einer Liste von ElementGroup Objekten
       result = []
       for name, elements in grouped.items():
-         result.append((name, len(elements), elements))
+         result.append(ElementGroup(name=name, count=len(elements), elements=elements))
 
       # Sortieren nach Namen
-      return sorted(result, key=lambda x: x[0])
+      return sorted(result, key=lambda x: x.name)
 
    @pyqtSlot(str)
    def activate_elements_by_name(self, name):
@@ -225,9 +234,9 @@ class CadElementTableModel(QAbstractTableModel): # Verwendung des Model/View-Ans
          col = index.column()
 
          if col == 0:  # Name
-            return self._data[row][0]
+            return self._data[row].name
          elif col == 1:  # Anzahl
-            return self._data[row][1]
+            return self._data[row].count
 
       return None
     # override
@@ -285,7 +294,7 @@ class CadElementView(QWidget):
         selected_indexes = self.table_view.selectionModel().selectedRows()
         if selected_indexes:
             row = selected_indexes[0].row()
-            element_name = self.table_model._data[row][0]
+            element_name = self.table_model._data[row].name
             self._view_model.activate_elements_by_name(element_name)
 ```
 
@@ -296,102 +305,13 @@ import sys
 from PyQt5.QtWidgets import QApplication
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    # app = QApplication(sys.argv) # Existiert bereits in cadwork 3d
 
     # MVVM-Komponenten initialisieren
     view_model = CadElementViewModel()
     view = CadElementView(view_model)
 
     view.show()
-    sys.exit(app.exec_())
+    # sys.exit(app.exec_()) # Existiert bereits in cadwork 3d
 ```
 
-## Integration mit cwapi3d
-
-Die cwapi3d-Bibliothek stellt eine Schnittstelle zu cadwork 3D zur Verfügung. Hier ein Beispiel, wie man die cwapi3d mit
-dem MVVM-Muster integrieren kann:
-
-```mermaid
-flowchart TD
-    A[PyQt5 UI] --> B[ViewModel]
-    B --> C[Model]
-    C --> D[cwapi3d Adapter]
-    D --> E[cadwork 3D API]
-    style A fill: #bfb, stroke: #333, stroke-width: 2px
-    style B fill: #bbf, stroke: #333, stroke-width: 2px
-    style C fill: #f9f, stroke: #333, stroke-width: 2px
-    style D fill: #fbb, stroke: #333, stroke-width: 2px
-    style E fill: #999, stroke: #333, stroke-width: 2px
-```
-
-### Adapter für cwapi3d
-
-```python
-# Adapter-Klasse für die cwapi3d
-class CwApi3dAdapter:
-    @staticmethod
-    def get_all_elements():
-        import element_controller as ec
-        return ec.get_visible_identifiable_element_ids()
-
-    @staticmethod
-    def get_element_name(element_id):
-        import attribute_controller as ac
-        # In einer realen Anwendung würde hier der tatsächliche Name abgerufen
-        return ac.get_name(element_id) or f"Element {element_id}"
-
-    @staticmethod
-    def get_element_type(element_id):
-        import utility_controller as uc
-        # Element-Typ abrufen
-        return uc.get_element_type_description(element_id)
-
-    @staticmethod
-    def activate_elements(element_ids):
-        import element_controller as ec
-        ec.set_active(element_ids)
-
-    @staticmethod
-    def deactivate_elements(element_ids):
-        import element_controller as ec
-        ec.set_inactive(element_ids)
-```
-
-### Angepasstes Model mit dem Adapter
-
-```python
-class CadElement:
-    def __init__(self, element_id):
-        self.element_id = element_id
-        self.name = CwApi3dAdapter.get_element_name(element_id)
-        self.element_type = CwApi3dAdapter.get_element_type(element_id)
-        self.is_active = False
-
-    def activate(self):
-        self.is_active = True
-        CwApi3dAdapter.activate_elements([self.element_id])
-
-    def deactivate(self):
-        self.is_active = False
-        CwApi3dAdapter.deactivate_elements([self.element_id])
-```
-
-### Angepasstes ViewModel
-
-```python
-class CadElementViewModel(QObject):
-    elementsChanged = pyqtSignal()
-
-    def __init__(self):
-        super().__init__()
-        self._elements = []
-        self._load_elements()
-
-    def _load_elements(self):
-        element_ids = CwApi3dAdapter.get_all_elements()
-        self._elements = [CadElement(id) for id in element_ids]
-        self.elementsChanged.emit()
-```
-
-Durch die Verwendung eines Adapters wird eine saubere Trennung zwischen der cwapi3d und der MVVM-Architektur erreicht.
-Dies erleichtert das Testen und ermöglicht eine einfachere Wartung der Anwendung.
