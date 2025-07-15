@@ -1,10 +1,118 @@
 # PyQt5 Grundlagen
 
+## Lizenzbedingungen von PyQt5
+
+PyQt5 wird von Riverbank Computing entwickelt und unterliegt spezifischen Lizenzbedingungen, die vor der Verwendung
+berücksichtigt werden müssen:
+
+### Lizenzoptionen
+
+1. **GPL v3 Lizenz**:
+    - PyQt5 ist unter der GNU General Public License (GPL) Version 3 verfügbar.
+    - Bei Verwendung dieser Lizenz **muss Ihre Anwendung ebenfalls unter GPL v3 veröffentlicht werden**.
+    - Der gesamte Quellcode Ihrer Anwendung muss für Endbenutzer zugänglich gemacht werden.
+
+2. **Kommerzielle Lizenz**:
+    - Für Anwendungen, die nicht unter GPL veröffentlicht werden sollen, ist eine kommerzielle Lizenz erforderlich.
+    - Diese kann von Riverbank Computing erworben
+      werden: [https://riverbankcomputing.com/commercial/pyqt](https://riverbankcomputing.com/commercial/pyqt)
+    - Die kommerzielle Lizenz erlaubt die Erstellung proprietärer (geschlossener) Anwendungen.
+
+### Wichtige Hinweise zur Einhaltung der Lizenzbedingungen
+
+- **Anwendungen unter GPL**:
+    - Der vollständige Quellcode muss verfügbar sein.
+    - Alle Änderungen am Code müssen dokumentiert werden.
+    - Die Lizenz muss in der Anwendung angegeben werden.
+    - Benutzer müssen über ihre Rechte unter der GPL informiert werden.
+
+> **Hinweis**: Die Informationen in diesem Dokument stellen keine Rechtsberatung dar. Konsultieren Sie bei
+> Unsicherheiten bezüglich der Lizenzierung einen Rechtsexperten oder kontaktieren Sie Riverbank Computing direkt.
+
+## Installation von PyQt5 für Windows
+
+Um mit PyQt5-Entwicklung zu beginnen, müssen Sie PyQt5 selbst sowie einige Hilfswerkzeuge installieren. Diese Anleitung
+konzentriert sich auf die Installation unter Windows.
+
+### Voraussetzungen
+
+- Python 3.6 oder höher (empfohlen: Python 3.8+)
+    - für cadwork v2025 benötigst du Python 3.12
+- Pip (Python Package Installer, normalerweise mit Python installiert)
+- Windows 10/11
+
+### 1. Installation von PyQt5
+
+Die einfachste Methode zur Installation von PyQt5 ist über pip:
+
+```bash
+pip install PyQt5
+```
+
+### 2. Installation von PyQt5-Tools
+
+Die PyQt5-Tools enthalten wichtige Hilfsprogramme wie Qt Designer, Qt Linguist und andere:
+
+```bash
+pip install pyqt5-tools
+```
+
+### 3. Qt Designer finden und starten
+
+Nach der Installation von `pyqt5-tools` befindet sich Qt Designer in einem der folgenden Verzeichnisse:
+
+- `%PYTHON_INSTALL_DIR%\Lib\site-packages\pyqt5_tools\designer.exe`
+- `%PYTHON_INSTALL_DIR%\Scripts\designer.exe`
+
+Sie können den Designer auch über die Kommandozeile starten:
+
+```bash
+pyqt5-tools designer
+```
+
+### 4. Installation von pyuic5 und pyrcc5 Konvertierungswerkzeugen
+
+Diese Werkzeuge werden für die Konvertierung von .ui- und .qrc-Dateien benötigt:
+
+- **pyuic5**: Konvertiert Qt Designer .ui-Dateien in Python-Code
+- **pyrcc5**: Konvertiert Qt Resource .qrc-Dateien in Python-Code
+
+Sie sind normalerweise bereits mit der PyQt5-Installation enthalten. Sie können sie über die Kommandozeile aufrufen:
+
+```bash
+# UI-Datei in Python-Code konvertieren
+pyuic5 mainwindow.ui -o ui_mainwindow.py
+
+# QRC-Datei in Python-Code konvertieren
+pyrcc5 resources.qrc -o resources_rc.py
+```
+
+### 5. Überprüfung der Installation
+
+Um zu überprüfen, ob PyQt5 korrekt installiert wurde, führen Sie folgendes Python-Skript aus:
+
+```python
+import sys
+from PyQt5.QtWidgets import QApplication, QLabel
+
+app = QApplication(sys.argv)
+label = QLabel("PyQt5 ist erfolgreich installiert!")
+label.show()
+sys.exit(app.exec_())
+```
+
+#### 6. Standalone Installer
+
+Riverbank Computing bietet auch eigenständige Installer für PyQt5 an, die von ihrer Website heruntergeladen werden
+können. https://riverbankcomputing.com/software/pyqt/download
+
 Diese Dokumentation bietet einen Überblick über die Grundlagen von PyQt5 und effiziente Implementierungsmuster für die
 Arbeit mit CAD-Elementen unter Verwendung der cwapi3d.
 
 ## Inhaltsverzeichnis
 
+- [Lizenzbedingungen von PyQt5](#lizenzbedingungen-von-pyqt5)
+- [Installation von PyQt5 für Windows](#installation-von-pyqt5-für-windows)
 - [Was ist PyQt5?](#was-ist-pyqt5)
 - [Qt-Architektur und Funktionsweise](#qt-architektur-und-funktionsweise)
 - [Effiziente PyQt5-Entwicklung](#effiziente-pyqt5-entwicklung)
@@ -227,6 +335,10 @@ if __name__ == "__main__":
 ```
 
 ## Qt Designer für UI-Entwicklung
+
+![Qt Designer](https://doc.qt.io/qt-6/images/designer-multiple-screenshot.png) 
+
+[Qt-Designer-Manual](https://doc.qt.io/qt-6/designer-quick-start.html)
 
 Der Qt Designer ist ein leistungsstarkes visuelles Tool zur Gestaltung von Benutzeroberflächen für Qt-Anwendungen.
 Anstatt UIs manuell zu programmieren, können Sie Widgets per Drag-and-Drop platzieren, Eigenschaften konfigurieren und
@@ -573,10 +685,10 @@ with open(":/styles/dark.qss", "r") as f:
 class ThemeManager:
     @staticmethod
     def apply_theme(app, theme_name):
-        if theme_name == "dark": # kann via cwapi3d abgerufen werden
+        if theme_name == "dark":  # kann via cwapi3d abgerufen werden
             with open(":/styles/dark.qss", "r") as f:
                 app.setStyleSheet(f.read())
-        elif theme_name == "light": # kann via cwapi3d abgerufen werden
+        elif theme_name == "light":  # kann via cwapi3d abgerufen werden
             with open(":/styles/light.qss", "r") as f:
                 app.setStyleSheet(f.read())
         else:

@@ -1,5 +1,7 @@
 # cadwork 3D-Element
 
+![cw-elements](../images/cadwork-elements.png)
+
 Ein `cadwork` 3D-Element repräsentiert ein **räumlich ausgerichtetes Bauteil** mit eigener Geometrie und einem **lokalen
 Koordinatensystem**.
 Es basiert auf einem **BREP-Modell (Boundary Representation)** und ist **absolut im Raum platziert**.
@@ -49,9 +51,9 @@ Jedes 3D-Element besitzt ein **eigenes lokales Koordinatensystem**, das über dr
 ## Beispiel zur Orientierung
 
 ```text
-P1: (0, 0, 0)
-P2: (1, 0, 0) → X-Achse
-P3: (0, 0, 1) → Z-Achse
+P1: (200., 0., 0.)
+P2: (800., 0., 0.) → X-Achse
+P3: (200., 0., 1.) → Z-Achse
 
 ````
 

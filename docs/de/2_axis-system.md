@@ -157,24 +157,6 @@ Achsensystem eines Stabes wird durch die drei Punkte P1, P2 und P3 eindeutig def
 
 #### Achsendefinition bei Stäben
 
-```python
-def create_beam_coordinate_system(p1, p2, p3):
-    """Erstelle lokales Koordinatensystem für Stab-Element"""
-    # X-Achse: Längsrichtung des Stabes (P1 → P2)
-    x_axis = vector_normalize(vector_subtract(p2, p1))
-
-    # Hilfsvektor für Z-Achse (P1 → P3)
-    temp_z = vector_subtract(p3, p1)
-
-    # Y-Achse: Senkrecht zu X und Z (Querrichtung)
-    y_axis = vector_normalize(vector_cross_product(temp_z, x_axis))
-
-    # Z-Achse: Höhenrichtung (rechtshändiges System)
-    z_axis = vector_cross_product(x_axis, y_axis)
-
-    return x_axis, y_axis, z_axis
-```
-
 **Stab-Achskonvention:**
 
 - **X-Achse (Längsrichtung)**: Definiert die Hauptrichtung des Stabes von P1 zu P2
@@ -195,26 +177,6 @@ Platten sind flächige Bauteile mit geringer Dicke im Verhältnis zu ihren ander
 definiert die Orientierung und Bearbeitungsrichtungen:
 
 #### Achsendefinition bei Platten
-
-```python
-def create_panel_coordinate_system(p1, p2, p3):
-    """Erstelle lokales Koordinatensystem für Platten-Element"""
-    # X-Achse: Längsrichtung der Platte (P1 → P2)
-    x_axis = vector_normalize(vector_subtract(p2, p1))
-
-    # Hilfsvektor in Plattenebene (P1 → P3)
-    temp_width = vector_subtract(p3, p1)
-
-    # Y-Achse: Breitenrichtung (in Plattenebene, senkrecht zu X)
-    y_axis = vector_normalize(vector_subtract(temp_width,
-                                              vector_multiply_scalar(x_axis,
-                                                                     vector_dot_product(temp_width, x_axis))))
-
-    # Z-Achse: Dickenrichtung (senkrecht zur Plattenebene)
-    z_axis = vector_cross_product(x_axis, y_axis)
-
-    return x_axis, y_axis, z_axis
-```
 
 **Platten-Achskonvention:**
 
